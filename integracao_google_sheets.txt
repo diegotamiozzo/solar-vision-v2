@@ -1,0 +1,67 @@
+📊 Integração com Google Sheets
+
+O formulário envia automaticamente os dados inseridos pelo usuário para uma planilha do Google Sheets, utilizando um Google Apps Script configurado como uma API pública.
+
+🔧 Passo a Passo de Configuração
+
+1. Crie uma nova planilha
+   - Acesse https://sheets.google.com
+   - Crie uma planilha nova (exemplo: "Simulador Solar")
+   - Crie uma aba nova ("Respostas"), mesmo nome da function
+
+2. Abra o editor de script
+   - No menu superior, clique em: Extensões → Apps Script
+
+3. Cole o seguinte código no editor:
+   ----------------------------------------------------------
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Respostas");
+  
+  if (!sheet) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Respostas");
+    sheet.appendRow(["Installation Type", "Location", "Installation Location", "Energy Provider", "Energy Type", "Monthly Bill", "Name", "Email", "Phone", "Privacy Agreement"]);
+  }
+
+  var data = JSON.parse(e.postData.contents);
+  sheet.appendRow([
+    data.installationType,
+    data.location,
+    data.installationLocation,
+    data.energyProvider,
+    data.energyType,
+    data.monthlyBill,
+    data.name,
+    data.email,
+    data.phone,
+    data.privacyAgreement ? "Yes" : "No"
+  ]);
+  
+  return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+}
+   ----------------------------------------------------------
+
+4. Implante como aplicativo da web
+   - Clique em Implantar → Nova implantação
+   - Em “Tipo de implantação”, escolha Aplicativo da Web
+   - Em “Executar como”, selecione Você mesmo
+   - Em “Quem tem acesso”, escolha Qualquer pessoa
+   - Clique em Implantar e copie a URL pública gerada (exemplo):
+     https://script.google.com/macros/s/AKfycbzSeuCodigoAqui/exec
+
+5. Configure o endpoint no código do formulário
+   - No arquivo script.js, substitua a URL na função enviarParaPlanilha():
+     ----------------------------------------------------------
+     fetch("https://script.google.com/macros/s/AKfycbzSeuCodigoAqui/exec", {
+         method: "POST",
+         mode: "no-cors",
+         headers: {
+             "Content-Type": "application/json"
+         },
+         body: JSON.stringify(sheetData)
+     });
+     ----------------------------------------------------------
+
+6. Teste o envio
+   - Preencha e envie o formulário completo
+   - Acesse sua planilha no Google Sheets
+   - Verifique se as informações foram registradas automaticamente na aba “Respostas”
